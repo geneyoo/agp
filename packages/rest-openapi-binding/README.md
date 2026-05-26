@@ -1,13 +1,12 @@
 # REST/OpenAPI Binding
 
-Placeholder for REST/OpenAPI binding helpers.
+REST/OpenAPI binding helpers for AGP's primary no-MCP path.
 
-This binding is the primary no-MCP path for AGP.
+Implemented helpers:
 
-Planned helpers:
-
-- OpenAPI extension fields for AGP receipts and confirmation challenges
-- bearer-token-to-grant validation middleware
+- bearer and DPoP authorization token parsing
 - idempotency helpers
-- receipt response helpers
-- consequential write annotations where supported by a host
+- receipt response builders
+- confirmation-required response builders
+- grant status response builders
+- OpenAPI extension helpers for AGP operation metadata, receipts, confirmations, and consequential writes

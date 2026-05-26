@@ -1,0 +1,14 @@
+{
+  "name": "@agp/provider-sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Provider-side helpers for Agent Grant Protocol reference implementations.",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "jose": "^6.2.3"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "@agp/rest-openapi-binding",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "REST/OpenAPI binding helpers for Agent Grant Protocol.",
+  "exports": {
+    ".": "./src/index.js"
+  }
+}

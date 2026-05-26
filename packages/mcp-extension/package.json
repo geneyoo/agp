@@ -1,0 +1,9 @@
+{
+  "name": "@agp/mcp-extension",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Optional MCP extension helpers for Agent Grant Protocol delegation fields.",
+  "exports": {
+    ".": "./src/index.js"
+  }
+}

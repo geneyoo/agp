@@ -1,0 +1,10 @@
+{
+  "name": "@agp/mock-harness",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Runnable mock harness and token broker client for the Agent Grant Protocol reference flow.",
+  "scripts": {
+    "demo": "node demo.js"
+  }
+}

@@ -14,13 +14,13 @@ Core rule:
 - `docs/transport-bindings.md`: REST/OpenAPI, ChatGPT Actions, MCP, CLI, and native app bindings.
 - `docs/milestones.md`: staged plan from paper to reference implementation.
 - `schemas/`: draft JSON schemas for protocol objects.
-- `packages/provider-sdk/`: placeholder for provider-side helpers.
-- `packages/harness-broker-sdk/`: placeholder for harness token broker and credential-custody helpers.
-- `packages/rest-openapi-binding/`: placeholder for REST/OpenAPI helpers.
-- `packages/chatgpt-actions-binding/`: placeholder for ChatGPT Actions helpers.
-- `packages/mcp-extension/`: optional MCP extension types.
-- `examples/mock-provider/`: placeholder provider implementation.
-- `examples/mock-harness/`: placeholder harness/broker implementation.
+- `packages/provider-sdk/`: provider-side grant, confirmation, receipt, token, and in-memory store helpers.
+- `packages/harness-broker-sdk/`: harness broker helpers for PKCE, DPoP, token custody, idempotency, and action envelopes.
+- `packages/rest-openapi-binding/`: REST/OpenAPI response, header, and extension helpers.
+- `packages/chatgpt-actions-binding/`: ChatGPT Actions grant and OpenAPI helpers.
+- `packages/mcp-extension/`: optional MCP `agent_delegation` field helpers.
+- `examples/mock-provider/`: runnable mock OAuth/provider/resource server.
+- `examples/mock-harness/`: runnable hosted-harness/token-broker demo client.
 
 ## Protocol Components
 
@@ -40,6 +40,49 @@ MCP can be one transport binding for tool discovery and invocation. AGP owns the
 
 The first practical consumer binding should be OAuth + REST/OpenAPI, with ChatGPT Actions as an early no-MCP deployment path.
 
+## Quickstart
+
+Requirements: Node.js 20 or newer.
+
+Install dependencies:
+
+```sh
+npm install
+```
+
+Run the reference flow end to end:
+
+```sh
+npm test
+npm run demo
+```
+
+Run the mock provider:
+
+```sh
+npm run mock:provider
+```
+
+Then run the mock harness against it:
+
+```sh
+AGP_PROVIDER_URL=http://127.0.0.1:8787 npm run mock:harness
+```
+
+The demo covers:
+
+- mock OAuth authorization code exchange with PKCE S256
+- DPoP-bound access token issuance and provider-side DPoP proof validation
+- token custody in a harness-side vault
+- read and write REST calls without MCP
+- provider confirmation for a consequential write
+- ES256 provider-signed confirmation token with JWKS metadata
+- ES256 provider-signed action receipt
+- runtime JSON Schema validation for grant, action request, confirmation claims, and receipts
+- idempotent write replay returning the same receipt
+
 ## Current Status
 
-Private exploratory draft. The first milestone is to harden the spec before implementing SDKs.
+Private exploratory draft with a hardened Node reference implementation for the primary REST/OpenAPI path.
+
+This is still not a production OAuth/OIDC server. It intentionally omits a real consent UI, persistent storage, refresh tokens, token introspection endpoint, dynamic client registration, PAR/JAR/RAR, full OIDC ID-token handling, and production key rotation.

@@ -1,0 +1,9 @@
+{
+  "name": "@agp/harness-broker-sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Harness token broker and credential-custody helpers for Agent Grant Protocol.",
+  "exports": {
+    ".": "./src/index.js"
+  }
+}

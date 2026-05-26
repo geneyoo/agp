@@ -1,0 +1,10 @@
+{
+  "name": "@agp/mock-provider",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Runnable mock provider for the Agent Grant Protocol reference flow.",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

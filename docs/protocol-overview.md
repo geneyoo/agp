@@ -1326,10 +1326,19 @@ The first practical consumer binding SHOULD be OAuth + REST/OpenAPI. This is the
 
 ### REST/OpenAPI Binding
 
-The REST/OpenAPI binding uses ordinary HTTPS APIs and standard bearer-token authorization:
+The REST/OpenAPI binding uses ordinary HTTPS APIs. A bearer-token deployment uses:
 
 ```http
 Authorization: Bearer <access_token>
+Content-Type: application/json
+Idempotency-Key: <key>
+```
+
+When DPoP is used, the access token is sender-constrained and requests use the DPoP authorization scheme:
+
+```http
+Authorization: DPoP <access_token>
+DPoP: <dpop_proof_jwt>
 Content-Type: application/json
 Idempotency-Key: <key>
 ```

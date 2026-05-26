@@ -31,7 +31,7 @@ The existence of an MCP binding must not make AGP depend on MCP. A provider shou
 
 ## REST/OpenAPI Binding
 
-The REST/OpenAPI binding uses ordinary HTTPS APIs:
+The REST/OpenAPI binding uses ordinary HTTPS APIs. A bearer-token deployment uses:
 
 ```http
 Authorization: Bearer <access_token>
@@ -39,9 +39,19 @@ Content-Type: application/json
 Idempotency-Key: <key>
 ```
 
+When the access token is DPoP-bound, the client uses the DPoP authorization scheme and sends a per-request proof:
+
+```http
+Authorization: DPoP <access_token>
+DPoP: <dpop_proof_jwt>
+Content-Type: application/json
+Idempotency-Key: <key>
+```
+
 The access token maps to an AGP grant through JWT claims or token introspection. The resource server enforces:
 
 - active grant
+- token binding, when used
 - user identity
 - harness identity
 - agent identity and trust tier

@@ -1,0 +1,9 @@
+{
+  "name": "@agp/chatgpt-actions-binding",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "ChatGPT Actions binding helpers for Agent Grant Protocol.",
+  "exports": {
+    ".": "./src/index.js"
+  }
+}

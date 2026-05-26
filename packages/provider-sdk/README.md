@@ -1,14 +1,28 @@
 # Provider SDK
 
-Placeholder for provider-side helpers.
+Provider-side helpers for the Agent Grant Protocol reference implementation.
 
-Planned modules:
+Implemented modules:
 
-- grant validation
-- confirmation token issuance and validation
-- receipt issuance
-- provider metadata
-- REST/OpenAPI grant middleware
-- ChatGPT Actions grant mapping helpers
+- agent delegation grant creation and validation
+- JSON Schema validation helpers backed by Ajv 2020-12
+- ES256 signing-key and JWKS helpers
+- in-memory authorization-code, DPoP-bound access-token, grant, revocation, and receipt store
+- PKCE S256 verification
+- DPoP proof verification and replay detection
 - action policy checks
-- revocation helpers
+- confirmation challenge creation
+- provider-signed confirmation token issuance and validation
+- provider-signed action receipt issuance and validation
+- stable JSON hashing helpers for action request payloads
+
+Example:
+
+```js
+import {
+  createAgentDelegationGrant,
+  createProviderSigningKeys,
+  createProviderStore,
+  issueConfirmationToken
+} from "@agp/provider-sdk";
+```
