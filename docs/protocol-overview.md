@@ -1,12 +1,12 @@
-# Agent Delegated Login Protocol
+# Agent Grant Protocol
 
-Draft: v3.1 RFC overview  
+Draft: v3.2 RFC overview
 Status: exploratory  
 Goal: define an interoperable, provider-safe way for users to delegate app access to named agents running inside named LLM harnesses.
 
 ## 1. Executive Summary
 
-Agent Delegated Login Protocol is an OAuth/OIDC interoperability profile, not a new cryptographic protocol.
+Agent Grant Protocol is a transport-agnostic OAuth/OIDC interoperability profile, not a new cryptographic protocol.
 
 It introduces a three-tier identity model:
 
@@ -26,17 +26,28 @@ Permission: create draft posts, publish only after human confirmation
 
 The protocol lets a user authorize a specific agent inside a specific harness to access a provider account without sharing usernames, passwords, cookies, or raw long-lived bearer tokens with the LLM.
 
+AGP is not a tool protocol. It can run under multiple integration surfaces:
+
+- REST/OpenAPI
+- ChatGPT Actions
+- MCP
+- native app SDKs
+- CLIs
+
+The core protocol owns the delegated-access semantics: user, harness, agent, subagent, grant, scope, consent, confirmation, receipt, session, revocation, and audit.
+
 Core thesis:
 
 > OAuth/OIDC proves user delegation.
 > DPoP/passkeys make it safer.
 > Agent claims make it agent-native.
 > Provider-owned sessions make it business-safe.
+> Transport bindings make it deployable without forcing one tool stack.
 
 Core security rule:
 
 > Provider signs the security facts the provider or resource server must trust.
-> Broker stores secrets, enforces policy, signs transport proofs, and forwards provider-signed artifacts.
+> Broker or credential custody layer stores secrets, enforces policy, signs transport proofs where supported, and forwards provider-signed artifacts.
 > Agent/model never gets credentials and never directly supplies security-critical claims.
 
 The protocol should be a win for all sides:
@@ -63,6 +74,16 @@ This is not simply "login via IG." More precisely:
 
 > The user delegates bounded, revocable access from IG to a named agent running inside a named harness.
 
+The consumer UX should hide the protocol machinery:
+
+```text
+Connect once.
+Approve clearly.
+Use until expiry or revocation.
+See one provider-visible session per harness/primary agent.
+Inspect subagent details only in audit views.
+```
+
 ## 3. Scope
 
 This profile covers:
@@ -78,7 +99,7 @@ This profile covers:
 - Action attribution.
 - Fine-grained authorization.
 - Human confirmation and step-up for sensitive actions.
-- Compatibility with tool ecosystems such as MCP.
+- Transport bindings for REST/OpenAPI, ChatGPT Actions, MCP, native SDKs, and CLIs.
 
 This profile does not cover:
 
@@ -87,6 +108,8 @@ This profile does not cover:
 - Unrestricted browser control by agents.
 - Scraping as an integration model.
 - Giving the LLM direct access to cookies, passwords, access tokens, refresh tokens, or raw bearer material.
+- Requiring providers or harnesses to use MCP.
+- Reusing private first-party app sessions as third-party agent grants.
 - Perfect or "guaranteed" security.
 
 The correct security claim is:
@@ -105,6 +128,8 @@ The correct security claim is:
 8. Be honest about agent identity trust level.
 9. Start with a practical MVP, but leave room for stronger attestation.
 10. Treat subagents as internal delegation under one provider-visible session unless the provider explicitly requires a separate grant.
+11. Keep the core protocol transport-agnostic.
+12. Optimize the consumer UX around a single obvious "connected app/agent" session, not protocol configuration.
 
 ## 5. Participants
 
@@ -117,7 +142,8 @@ The correct security claim is:
 | Harness | ChatGPT, Claude, Gemini | Runs agents and owns the user-facing agent runtime |
 | Agent | Social Scheduler | Requests actions on behalf of user |
 | Subagent | Caption Writer, Image Selector | Performs internal work under the primary agent and harness |
-| Token Broker | Harness-side auth subsystem | Stores secrets, enforces policy, signs requests |
+| Token Broker / Credential Custody Layer | Harness-side auth subsystem, hosted platform credential store, native credential helper, or CLI credential helper | Stores secrets, enforces policy, signs requests where supported |
+| Transport Binding | REST/OpenAPI, ChatGPT Actions, MCP, native SDK, CLI | Carries AGP semantics over a concrete integration surface |
 | Agent Registry | Optional future registry | Publishes or verifies agent metadata |
 
 Important distinction:
@@ -144,9 +170,10 @@ Harness UI -> Agent runtime -> Subagents/tools
                 |
                 | structured action requests, no token material
                 v
-        Harness Token Broker
+        Token Broker / Credential Custody Layer
                 |
-                | DPoP-bound calls + provider-signed artifacts
+                | transport binding: REST/OpenAPI, ChatGPT Actions, MCP, native SDK, CLI
+                | DPoP-bound calls where supported + provider-signed artifacts
                 v
         Provider Resource Server
                 |
@@ -167,7 +194,9 @@ From the provider and user point of view, a primary agent and its subagents SHOU
 
 **Provider**: the app or service that owns the user account and resource. Examples: Instagram, YouTube, GitHub.
 
-**Token Broker**: a harness-side security component that stores tokens and keys, evaluates policy, signs requests, performs provider API calls, and emits receipts. It is not merely a credential store.
+**Token Broker / Credential Custody Layer**: the security component that stores tokens and keys, evaluates policy, signs requests where supported, performs or authorizes provider API calls, and prevents token material from entering model context. In a hosted harness binding, this may be the platform's credential store rather than an AGP-specific broker process. In a CLI binding, this may be an OS credential helper or local session file.
+
+**Transport Binding**: the concrete integration surface that carries AGP grants and action semantics. Examples: REST/OpenAPI, ChatGPT Actions, MCP, native SDKs, and CLIs.
 
 **Agent Delegation Grant**: the provider-issued authorization record that binds user, harness, agent, resource, scopes, policy, and session state.
 
@@ -183,7 +212,7 @@ From the provider and user point of view, a primary agent and its subagents SHOU
 
 ## 7. Standards Profile
 
-This profile should be implemented as a strict OAuth/OIDC profile with agent-specific extensions.
+This profile should be implemented as a strict OAuth/OIDC profile with agent-specific extensions. Transport bindings define how the profile is carried by a concrete integration surface.
 
 | Standard | Requirement | Use |
 |---|---|---|
@@ -219,6 +248,7 @@ References:
 - JSON Canonicalization Scheme, RFC 8785: https://www.rfc-editor.org/rfc/rfc8785
 - OpenID Connect Core: https://openid.net/specs/openid-connect-core-1_0.html
 - WebAuthn: https://www.w3.org/TR/webauthn-3/
+- OpenAPI Specification: https://spec.openapis.org/oas/latest.html
 - MCP authorization: https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization
 
 ## 8. Trust Model
@@ -1279,22 +1309,76 @@ This framing is critical:
 > Agents do not bypass apps.
 > Agents become permissioned, attributable, revocable clients of apps.
 
-## 24. MCP Relationship
+## 24. Transport Binding Strategy
 
-This profile is transport-agnostic. It can be used by:
+AGP is the delegated-access layer, not the tool invocation layer.
 
-- MCP clients and servers
-- hosted LLM harnesses
-- native apps
-- web apps
-- local desktop agents
-- provider SDKs
+AGP can be carried over:
 
-MCP is a primary deployment target, not the only target.
+- REST/OpenAPI
+- ChatGPT Actions
+- MCP
+- native mobile or desktop SDKs
+- CLIs
+- provider-specific SDKs
+
+The first practical consumer binding SHOULD be OAuth + REST/OpenAPI. This is the least surprising shape for providers and can be used by hosted harnesses, first-party apps, CLIs, and SDKs without waiting for a tool protocol to win.
+
+### REST/OpenAPI Binding
+
+The REST/OpenAPI binding uses ordinary HTTPS APIs and standard bearer-token authorization:
+
+```http
+Authorization: Bearer <access_token>
+Content-Type: application/json
+Idempotency-Key: <key>
+```
+
+The resource server maps the access token to an AGP grant through JWT claims or token introspection. Security-critical AGP facts MUST come from provider-issued tokens, introspection, provider-side grant records, or provider-signed artifacts, not arbitrary client headers.
+
+State-changing responses SHOULD include a provider-signed or provider-stored receipt reference.
+
+### ChatGPT Actions Binding
+
+ChatGPT Actions should be modeled as a hosted harness binding over REST/OpenAPI.
+
+From the user perspective:
+
+```text
+Connect provider account once.
+Approve scopes and expiry.
+Use ChatGPT until TTL expiry or revocation.
+```
+
+From the provider perspective:
+
+```text
+user = provider account
+harness = openai-chatgpt-actions
+agent = provider-defined GPT/action integration
+subagents = internal attribution under the same provider-visible session by default
+```
+
+Requirements:
+
+- Use OAuth Authorization Code flow for user-specific access.
+- Use the standard `Authorization: Bearer` header for API calls.
+- Do not depend on custom request headers for security-critical AGP claims.
+- Treat the hosted harness credential store as the credential custody layer.
+- Treat host-provided user/session metadata, if present, as correlation hints only.
+- Store the provider-side AGP grant and map the OAuth token to that grant.
+- Mark write operations as consequential in the OpenAPI schema where the host supports that metadata.
+- Show one provider-visible connected session for the harness and primary agent.
+
+ChatGPT-style hosted harnesses do not expose a stable device UUID equivalent to a first-party iPhone app keychain identity. The provider must create its own AGP grant/session record instead of trying to reuse a first-party device session.
+
+### MCP Binding
+
+MCP remains a useful binding for tool discovery and invocation, but AGP does not depend on MCP.
 
 Recommended positioning:
 
-> Agent Delegated Login is an OAuth/OIDC profile that can be used by MCP authorization. It extends the normal client/resource/user model with explicit harness identity, agent identity, broker isolation, action receipts, and provider-owned consent semantics.
+> AGP can be used by MCP authorization. It extends the normal client/resource/user model with explicit harness identity, agent identity, broker isolation, action receipts, and provider-owned consent semantics.
 
 In MCP terms:
 
@@ -1304,8 +1388,6 @@ In MCP terms:
 - Protected Resource Metadata can advertise agent delegation support.
 - MCP tool calls should map to structured action requests.
 - Tool results must not leak token material back to the model context.
-
-MCP compatibility likely requires extension fields rather than prose-only mapping.
 
 Suggested MCP extension points:
 
@@ -1321,6 +1403,18 @@ Suggested MCP extension points:
 | `agent_delegation.receipt_id` | Return provider receipt handle |
 
 Tool results SHOULD return receipt references and user-safe summaries, not bearer tokens, refresh tokens, provider cookies, or raw confirmation tokens.
+
+### Native App And CLI Bindings
+
+Native apps and CLIs can use platform credential storage:
+
+- iOS/macOS Keychain
+- Android Keystore
+- desktop OS credential stores
+- local encrypted credential files
+- local session files for development
+
+These sessions are client-specific. They MUST NOT be treated as transferable proof for a hosted harness. A ChatGPT grant, a CLI session, and a first-party iPhone session may all point to the same provider user but SHOULD remain separate, independently revocable sessions.
 
 ## 25. Wire-Level Enforcement Points
 
@@ -1362,10 +1456,13 @@ These values should come from provider-issued tokens, introspection, or signed a
 | Provider-rendered sensitive surfaces | Preserves monetization/control | Less seamless harness UX |
 | Provider-signed confirmation tokens | Strong action approval semantics | Adds challenge/retry UX |
 | One provider-visible session for subagents | Cleaner UX and session safety | Requires receipt-level subagent attribution |
+| REST/OpenAPI as first binding | Familiar, deployable, no MCP dependency | Less expressive tool discovery |
+| ChatGPT Actions as hosted harness binding | Seamless consumer UX in ChatGPT | Hosted platform controls credential custody and action UX |
+| MCP as primary binding | Rich tool protocol compatibility | Consumer UX and provider adoption may lag tool-protocol complexity |
 
 Recommended tradeoff:
 
-> Start with strict OAuth/OIDC compatibility, DPoP token binding, provider-owned consent, mandatory receipts, and Tier 1 harness-asserted agent identity. Design the profile so Tier 2-4 agent identity can be adopted without replacing the protocol.
+> Start with strict OAuth/OIDC compatibility, REST/OpenAPI transport, provider-owned consent, mandatory receipts, one provider-visible session, and Tier 1 harness-asserted agent identity. Add DPoP where the transport supports it. Keep MCP as an optional binding, not a dependency. Design the profile so Tier 2-4 agent identity can be adopted without replacing the protocol.
 
 ## 27. Phased Plan
 
@@ -1385,31 +1482,40 @@ Recommended tradeoff:
 - Define receipt signing semantics.
 - Define idempotency semantics.
 - Define provider metadata fields.
+- Define transport binding matrix.
+- Define REST/OpenAPI binding.
+- Define ChatGPT Actions binding.
 - Define MCP compatibility guidance and extension fields.
+- Define native app and CLI binding expectations.
 - Define subagent attribution under one provider-visible session.
 
 ### Phase 1: Single Provider, Single Harness
 
 Goal: prove existing provider account delegation, not just net-new account creation.
 
-Phase 1a: consent, grant, broker, and receipts.
+Phase 1a: OAuth + REST/OpenAPI + visible connected session.
 
 - One provider.
 - One harness.
 - Existing provider account authorization.
 - Local net-new account creation only if needed, anchored on issuer + subject.
+- Public HTTPS resource API.
+- OpenAPI schema.
+- OAuth authorize/token/revoke endpoints.
+- Hosted harness token mapped to provider-side AGP grant.
 - Read profile.
 - Create draft.
 - Provider session UI for connected agent.
 - Revoke agent grant.
 - Mandatory receipts for writes.
-- Broker isolation from model context.
-- DPoP-bound access tokens.
+- Credential custody isolation from model context.
 
-Phase 1b: binding and refresh hardening.
+Phase 1b: binding, refresh, and replay hardening.
 
 - Rotating refresh tokens.
 - Token introspection or short-TTL enforcement for state-changing actions.
+- DPoP-bound access tokens where the binding supports proof-of-possession.
+- Idempotency enforcement for writes.
 
 Phase 1c: sensitive writes.
 
@@ -1418,11 +1524,20 @@ Phase 1c: sensitive writes.
 - Action-time step-up challenge.
 - User activity feed for confirmed writes.
 
+Phase 1d: ChatGPT Actions pilot.
+
+- OpenAPI Action schema.
+- OAuth user connection.
+- Consequential write annotations where supported.
+- One provider-visible "ChatGPT / primary agent" session.
+- Subagent attribution only in receipts and audit details by default.
+
 ### Phase 2: Ecosystem Readiness
 
 - Multiple harnesses.
 - Multiple providers.
 - Provider metadata discovery.
+- Multiple transport bindings.
 - Common action vocabulary.
 - Existing local account linking.
 - Agent registry or marketplace.
@@ -1452,6 +1567,7 @@ Implementations MUST:
 - use OAuth Authorization Code with PKCE
 - validate issuer, audience, expiry, redirect URI, nonce, and state
 - prevent token material from entering model context
+- map hosted-harness OAuth tokens to provider-side AGP grants
 - support provider-side revocation
 - use short-lived access tokens
 - rotate refresh tokens
@@ -1484,6 +1600,7 @@ Implementations MUST NOT:
 - use password grants
 - collect user provider passwords in harnesses
 - share provider cookies with agents
+- reuse first-party app/device sessions as third-party hosted harness grants
 - expose raw access tokens to the LLM
 - expose refresh tokens to the LLM
 - store provider cookies in agent memory
@@ -1543,5 +1660,5 @@ Subagents should not fragment the user's safety model. From the provider and use
 The protocol should follow one rule whenever possible:
 
 > Provider signs security facts.
-> Broker forwards and enforces them.
+> Broker or credential custody layer forwards and enforces them.
 > Agent requests work but does not mint trust.

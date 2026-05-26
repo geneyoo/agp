@@ -1,6 +1,8 @@
 # MCP Extension
 
-Placeholder for MCP extension types and helpers.
+Placeholder for optional MCP extension types and helpers.
+
+MCP is one possible AGP transport binding. AGP must also work over REST/OpenAPI, ChatGPT Actions, native SDKs, and CLIs without MCP.
 
 Planned fields:
 
