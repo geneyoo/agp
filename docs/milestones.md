@@ -67,6 +67,7 @@ Deliverables:
 - example provider metadata endpoint
 - example grant/session UI contract
 - integration guide
+- reference implementation traceability docs
 
 Exit criteria:
 
@@ -75,3 +76,4 @@ Exit criteria:
 - REST/OpenAPI clients can carry grant IDs, receipt IDs, idempotency keys, and confirmation challenges safely
 - ChatGPT Actions can use OAuth and a provider-side AGP grant without exposing protocol details to the user
 - MCP-based tools can optionally carry AGP fields safely
+- at least one reference implementation maps AGP concepts to concrete code and pending gaps
