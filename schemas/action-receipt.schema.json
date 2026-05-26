@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentgrant.example/schemas/action-receipt.schema.json",
+  "title": "Action Receipt",
+  "type": "object",
+  "description": "Draft placeholder schema for provider-signed or provider-stored action receipts.",
+  "required": ["receipt_id", "iss", "user_sub", "harness_id", "primary_agent_id", "grant_id", "action", "timestamp", "request_hash", "result"],
+  "properties": {
+    "receipt_id": { "type": "string" },
+    "iss": { "type": "string", "format": "uri" },
+    "provider": { "type": "string", "format": "uri" },
+    "resource_server": { "type": "string", "format": "uri" },
+    "user_sub": { "type": "string" },
+    "harness_id": { "type": "string" },
+    "primary_agent_id": { "type": "string" },
+    "subagent_chain": { "type": "array" },
+    "grant_id": { "type": "string" },
+    "agent_session_id": { "type": "string" },
+    "action": { "type": "string" },
+    "resource_id": { "type": "string" },
+    "action_request_id": { "type": "string" },
+    "idempotency_key": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "confirmation_token_id": { "type": ["string", "null"] },
+    "step_up_performed": { "type": "boolean" },
+    "dpop_jkt": { "type": "string" },
+    "request_hash": { "type": "string" },
+    "result": { "type": "string" }
+  }
+}

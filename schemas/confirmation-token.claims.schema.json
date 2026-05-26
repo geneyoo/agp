@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentgrant.example/schemas/confirmation-token.claims.schema.json",
+  "title": "Confirmation Token Claims",
+  "type": "object",
+  "description": "Draft placeholder schema for provider-signed confirmation token claims.",
+  "required": ["iss", "aud", "sub", "client_id", "harness_id", "agent_id", "grant_id", "action", "resource", "payload_hash", "confirmation_id", "cnf", "iat", "exp"],
+  "properties": {
+    "iss": { "type": "string", "format": "uri" },
+    "aud": { "type": "string" },
+    "sub": { "type": "string" },
+    "client_id": { "type": "string" },
+    "harness_id": { "type": "string" },
+    "agent_id": { "type": "string" },
+    "grant_id": { "type": "string" },
+    "action": { "type": "string" },
+    "resource": { "type": "string", "format": "uri" },
+    "payload_hash": { "type": "string" },
+    "confirmation_id": { "type": "string" },
+    "cnf": { "type": "object" },
+    "amr": { "type": "array", "items": { "type": "string" } },
+    "acr": { "type": "string" },
+    "iat": { "type": "integer" },
+    "exp": { "type": "integer" }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentgrant.example/schemas/agent-delegation-grant.schema.json",
+  "title": "Agent Delegation Grant",
+  "type": "object",
+  "description": "Draft placeholder schema for the provider-issued grant binding user, harness, agent, resources, policy, and session state.",
+  "required": ["grant_id", "user", "harness", "agent", "resources", "permissions", "session"],
+  "properties": {
+    "grant_id": { "type": "string" },
+    "user": { "type": "object" },
+    "harness": { "type": "object" },
+    "agent": { "type": "object" },
+    "subagents": { "type": "object" },
+    "resources": {
+      "type": "array",
+      "items": { "type": "string", "format": "uri" }
+    },
+    "permissions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "policy": { "type": "object" },
+    "token_binding": { "type": "object" },
+    "session": { "type": "object" }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentgrant.example/schemas/action-request-envelope.schema.json",
+  "title": "Action Request Envelope",
+  "type": "object",
+  "description": "Draft placeholder schema for an attributed action request sent through the broker to a provider resource server.",
+  "required": ["action_request_id", "grant_id", "harness_id", "primary_agent_id", "action", "resource", "idempotency_key", "request_hash"],
+  "properties": {
+    "action_request_id": { "type": "string" },
+    "grant_id": { "type": "string" },
+    "harness_id": { "type": "string" },
+    "primary_agent_id": { "type": "string" },
+    "subagent_chain": { "type": "array" },
+    "action": { "type": "string" },
+    "resource": { "type": "string", "format": "uri" },
+    "display_context": { "type": "object" },
+    "confirmation_token_ref": { "type": ["string", "null"] },
+    "idempotency_key": { "type": "string" },
+    "request_hash": { "type": "string" }
+  }
+}
