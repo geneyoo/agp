@@ -29,14 +29,16 @@ Palette currently implements:
 - review write attribution by user, client, harness, agent, and grant
 - action receipts for `reviews.create`
 - a service seam for future `Authorization: Bearer <token>` API calls
+- local FastAPI REST endpoints over the provider service layer
+- generated OpenAPI at `/openapi.json`
+- no-OAuth ChatGPT Actions bridge using manual bearer-token Action auth
 
 Palette does not yet implement:
 
-- public HTTPS API
 - OAuth authorization code flow
 - refresh tokens
-- OpenAPI schema
-- ChatGPT Actions binding
+- public HTTPS deployment
+- full OAuth-backed ChatGPT Actions binding
 - provider-owned browser consent UI
 - confirmation tokens
 - DPoP
@@ -57,9 +59,9 @@ implementation's traceability file and mark the behavior as pending.
 |---|---|---|
 | P0 | local provider auth model | users, password hashes, CLI session |
 | P1 | external grants and receipts | `agent_grants`, review attribution, `reviews.create` receipt |
-| P2 | REST/OpenAPI binding | public HTTPS API over `PaletteService` |
+| P2 | REST/OpenAPI binding | FastAPI over `PaletteService`, public HTTPS pending |
 | P3 | OAuth code flow | authorize/token/revoke endpoints and consent |
-| P4 | ChatGPT Actions binding | OpenAPI Action schema and ChatGPT connection flow |
+| P4 | ChatGPT Actions binding | no-OAuth bearer-token Action bridge now, OAuth pending |
 | P5 | conformance | shared tests for grants, scopes, receipts, revocation, no token leakage |
 
 ## Open Feedback Loop
